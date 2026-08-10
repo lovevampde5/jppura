@@ -1,0 +1,105 @@
+name: Puratya Auto Renew
+
+
+on:
+
+  # 定时执行
+  schedule:
+
+    # UTC 01:00
+    # 北京时间 09:00
+
+    - cron: "0 1 * * *"
+
+
+  # 手动执行
+
+  workflow_dispatch:
+
+
+
+jobs:
+
+
+  renew:
+
+
+    runs-on:
+      ubuntu-latest
+
+
+
+    steps:
+
+
+      - name:
+          Checkout
+
+        uses:
+          actions/checkout@v4
+
+
+
+      - name:
+          Setup Python
+
+        uses:
+          actions/setup-python@v5
+
+        with:
+
+          python-version:
+            "3.11"
+
+
+
+      - name:
+          Install dependency
+
+        run:
+
+          pip install -r requirements.txt
+
+
+
+      - name:
+          Run Puratya Renew
+
+
+        env:
+
+
+          PURATYA_TOKEN:
+
+            ${{ secrets.PURATYA_TOKEN }}
+
+
+          TG_BOT_TOKEN:
+
+            ${{ secrets.TG_BOT_TOKEN }}
+
+
+          TG_CHAT_ID:
+
+            ${{ secrets.TG_CHAT_ID }}
+
+
+
+        run:
+
+          python renew.py
+
+      - name: 🧹 清理旧的工作流运行记录
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 获取当前工作流的所有运行记录，保留最近 1 条，删除其余
+          runs=$(gh run list --workflow="${{ github.workflow }}" --limit=100 --json databaseId --jq '.[].databaseId')
+          count=0
+          for run_id in $runs; do
+            count=$((count + 1))
+            if [ $count -gt 1 ]; then
+              echo "删除运行记录: $run_id"
+              gh run delete $run_id || true
+            fi
+          done
