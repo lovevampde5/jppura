@@ -11,21 +11,18 @@ BASE_URL = "https://cloud.puratya.com"
 
 
 # Bot列表
-# 增加服务器只需要复制一组
-
 BOTS = [
     {
         "id": "9341",
         "name": "jpbot"
     }
 
-    # 示例:
+    # 添加更多 Bot:
     #
     # {
     #     "id": "9342",
     #     "name": "usbot"
     # }
-
 ]
 
 
@@ -33,20 +30,11 @@ BOTS = [
 # GitHub Secrets
 # ==================================
 
-PURATYA_TOKEN = os.getenv(
-    "PURATYA_TOKEN"
-)
+PURATYA_TOKEN = os.getenv("PURATYA_TOKEN")
 
+TG_BOT_TOKEN = os.getenv("TG_BOT_TOKEN")
 
-TG_BOT_TOKEN = os.getenv(
-    "TG_BOT_TOKEN"
-)
-
-
-TG_CHAT_ID = os.getenv(
-    "TG_CHAT_ID"
-)
-
+TG_CHAT_ID = os.getenv("TG_CHAT_ID")
 
 
 # ==================================
@@ -54,30 +42,18 @@ TG_CHAT_ID = os.getenv(
 # ==================================
 
 headers = {
-
-    "User-Agent":
-        "Mozilla/5.0",
-
-    "Accept":
-        "*/*",
-
-    "Origin":
-        BASE_URL
-
+    "User-Agent": "Mozilla/5.0",
+    "Accept": "*/*",
+    "Origin": BASE_URL
 }
 
 
 cookies = {
-
-    "__Host-mrtcloud_token":
-        PURATYA_TOKEN
-
+    "__Host-mrtcloud_token": PURATYA_TOKEN
 }
 
 
-
 reports = []
-
 
 
 # ==================================
@@ -98,19 +74,10 @@ def send_telegram(message):
 
 
     data = {
-
-        "chat_id":
-            TG_CHAT_ID,
-
-        "text":
-            message,
-
-        "parse_mode":
-            "HTML",
-
-        "disable_web_page_preview":
-            True
-
+        "chat_id": TG_CHAT_ID,
+        "text": message,
+        "parse_mode": "Markdown",
+        "disable_web_page_preview": True
     }
 
 
@@ -136,7 +103,6 @@ def send_telegram(message):
         )
 
 
-
 # ==================================
 # Puratya续期
 # ==================================
@@ -155,28 +121,17 @@ def renew(bot):
 
 
     print(
-        f"开始续期: {name} ({bot_id})"
+        f"正在续期 {name} ({bot_id})"
     )
 
 
     try:
 
         response = requests.post(
-
             url,
-
             headers=headers,
-
             cookies=cookies,
-
             timeout=20
-
-        )
-
-
-        print(
-            "HTTP:",
-            response.status_code
         )
 
 
@@ -211,9 +166,6 @@ def renew(bot):
         )
 
 
-        # 时间格式:
-        # 2026-08-17 00:36
-
         if stop_at != "-":
 
             stop_at = (
@@ -224,14 +176,10 @@ def renew(bot):
 
 
         reports.append(
-
-f"""
-✅ <b>{name}续期成功</b>
-🆔 Bot: <code>{bot_id}</code>
-⏰ 剩余: <b>{hours}小时</b>
-📅 到期: {stop_at}
-"""
-
+            f"✅ **{name}续期成功**\n"
+            f"🆔 Bot: `{bot_id}`\n"
+            f"⏰ 剩余: **{hours}小时**\n"
+            f"📅 到期: {stop_at}"
         )
 
 
@@ -239,15 +187,10 @@ f"""
 
 
         reports.append(
-
-f"""
-❌ <b>{name}续期失败</b>
-🆔 Bot: <code>{bot_id}</code>
-⚠️ 错误: <code>{e}</code>
-"""
-
+            f"❌ **{name}续期失败**\n"
+            f"🆔 Bot: `{bot_id}`\n"
+            f"⚠️ 错误: `{e}`"
         )
-
 
 
 # ==================================
@@ -272,27 +215,9 @@ if __name__ == "__main__":
 
 
     message = (
-
-f"""🤖 <b>Puratya续期通知</b>
-
-"""
-
-    )
-
-
-    message += "\n".join(
-        reports
-    )
-
-
-    message += (
-
-f"""
-
-🕒 {now.strftime('%Y-%m-%d %H:%M')} UTC
-⚡ GitHub Actions
-"""
-
+        "🤖 **Puratya续期通知**\n"
+        + "\n".join(reports)
+        + f"\n🕒 签到时间：{now.strftime('%Y-%m-%d %H:%M')} UTC"
     )
 
 
