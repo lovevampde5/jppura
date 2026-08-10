@@ -3,34 +3,37 @@ import requests
 import datetime
 
 
+# ==================================
+# Puratya 配置
+# ==================================
+
 BASE_URL = "https://cloud.puratya.com"
 
 
-# ==========================
-# Bot 配置
-# ==========================
+# Bot列表
+# 增加服务器只需要复制一组
 
 BOTS = [
     {
         "id": "9341",
-        "name": "主服务器"
-    },
+        "name": "jpbot"
+    }
 
-    # 多个继续添加
+    # 示例:
     #
     # {
-    #     "id":"9342",
-    #     "name":"测试服务器"
+    #     "id": "9342",
+    #     "name": "usbot"
     # }
 
 ]
 
 
-# ==========================
+# ==================================
 # GitHub Secrets
-# ==========================
+# ==================================
 
-TOKEN = os.getenv(
+PURATYA_TOKEN = os.getenv(
     "PURATYA_TOKEN"
 )
 
@@ -46,75 +49,97 @@ TG_CHAT_ID = os.getenv(
 
 
 
+# ==================================
+# 请求配置
+# ==================================
+
 headers = {
 
     "User-Agent":
-    "Mozilla/5.0",
+        "Mozilla/5.0",
+
+    "Accept":
+        "*/*",
 
     "Origin":
-    BASE_URL
+        BASE_URL
 
 }
-
 
 
 cookies = {
 
     "__Host-mrtcloud_token":
-    TOKEN
+        PURATYA_TOKEN
 
 }
 
 
 
-report=[]
+reports = []
 
 
 
-# ==========================
-# Telegram
-# ==========================
+# ==================================
+# Telegram 推送
+# ==================================
 
-def tg_send(msg):
+def send_telegram(message):
 
-    if not TG_BOT_TOKEN:
-        print(
-            "TG 未配置"
-        )
+    if not TG_BOT_TOKEN or not TG_CHAT_ID:
+        print("Telegram 未配置")
         return
 
 
-    url=f"https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage"
+    url = (
+        f"https://api.telegram.org/"
+        f"bot{TG_BOT_TOKEN}/sendMessage"
+    )
 
 
-    data={
+    data = {
 
         "chat_id":
-        TG_CHAT_ID,
+            TG_CHAT_ID,
 
         "text":
-        msg,
+            message,
 
         "parse_mode":
-        "HTML",
+            "HTML",
 
         "disable_web_page_preview":
-        True
+            True
 
     }
 
 
-    requests.post(
-        url,
-        data=data,
-        timeout=10
-    )
+    try:
+
+        r = requests.post(
+            url,
+            data=data,
+            timeout=10
+        )
+
+        print(
+            "Telegram:",
+            r.status_code
+        )
+
+
+    except Exception as e:
+
+        print(
+            "TG发送失败:",
+            e
+        )
 
 
 
-# ==========================
-# 续期
-# ==========================
+# ==================================
+# Puratya续期
+# ==================================
 
 def renew(bot):
 
@@ -123,13 +148,20 @@ def renew(bot):
     name = bot["name"]
 
 
-    url=f"{BASE_URL}/api/bots/{bot_id}/renew"
+    url = (
+        f"{BASE_URL}/api/bots/"
+        f"{bot_id}/renew"
+    )
+
+
+    print(
+        f"开始续期: {name} ({bot_id})"
+    )
 
 
     try:
 
-
-        r=requests.post(
+        response = requests.post(
 
             url,
 
@@ -142,113 +174,133 @@ def renew(bot):
         )
 
 
-        data=r.json()
+        print(
+            "HTTP:",
+            response.status_code
+        )
 
 
-        timer=data.get(
+        if response.status_code != 200:
+
+            raise Exception(
+                f"HTTP {response.status_code}"
+            )
+
+
+        data = response.json()
+
+
+        timer = data.get(
             "timer",
             {}
         )
 
 
-        seconds=timer.get(
+        seconds = timer.get(
             "remaining_seconds",
             0
         )
 
 
-        hours=seconds//3600
+        hours = seconds // 3600
 
 
-        stop=timer.get(
+        stop_at = timer.get(
             "stop_at",
             "-"
         )
 
 
-        report.append(
+        # 时间格式:
+        # 2026-08-17 00:36
+
+        if stop_at != "-":
+
+            stop_at = (
+                stop_at
+                .replace("T", " ")
+                [:16]
+            )
+
+
+        reports.append(
+
 f"""
-✅ <b>续期成功</b>
-
-🖥 {name}
-
-🆔 Bot:
-<code>{bot_id}</code>
-
-⏰ 剩余:
-<b>{hours}小时</b>
-
-📅 到期:
-{stop}
-
+✅ <b>{name}续期成功</b>
+🆔 Bot: <code>{bot_id}</code>
+⏰ 剩余: <b>{hours}小时</b>
+📅 到期: {stop_at}
 """
-        )
 
+        )
 
 
     except Exception as e:
 
 
-        report.append(
+        reports.append(
+
 f"""
-❌ <b>续期失败</b>
-
-🖥 {name}
-
-🆔 Bot:
-<code>{bot_id}</code>
-
-错误:
-<code>{e}</code>
-
+❌ <b>{name}续期失败</b>
+🆔 Bot: <code>{bot_id}</code>
+⚠️ 错误: <code>{e}</code>
 """
+
         )
 
 
 
-# ==========================
+# ==================================
 # 主程序
-# ==========================
+# ==================================
+
+if __name__ == "__main__":
 
 
-print(
-"====== Puratya Renew ======"
-)
+    print(
+        "====== Puratya Auto Renew ======"
+    )
+
+
+    for bot in BOTS:
+
+        renew(bot)
 
 
 
-for bot in BOTS:
-
-    renew(bot)
+    now = datetime.datetime.utcnow()
 
 
+    message = (
 
-now=datetime.datetime.utcnow()
-
-
-msg=f"""
-🤖 <b>Puratya续期通知</b>
-
-━━━━━━━━━━━━
+f"""🤖 <b>Puratya续期通知</b>
 
 """
 
+    )
 
-msg += "\n".join(report)
+
+    message += "\n".join(
+        reports
+    )
 
 
-msg += f"""
+    message += (
 
-━━━━━━━━━━━━
+f"""
 
-🕒 执行时间:
-{now}
-
+🕒 {now.strftime('%Y-%m-%d %H:%M')} UTC
 ⚡ GitHub Actions
 """
 
+    )
 
-print(msg)
+
+    print(
+        message
+    )
 
 
-tg_send(msg)
+    send_telegram(
+        message
+    )
