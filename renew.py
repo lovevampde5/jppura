@@ -13,7 +13,7 @@ BASE_URL = "https://cloud.puratya.com"
 # Bot列表
 BOTS = [
     {
-        "id": "9341",
+        "id": "9483",
         "name": "jpbot"
     }
 
