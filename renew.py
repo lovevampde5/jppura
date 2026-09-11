@@ -16,8 +16,12 @@ BASE_URL = "https://cloud.puratya.com"
 
 BOTS = [
     {
-        "id": "9341",
-        "name": "jpbot"
+        "id": "9483",
+        "name": "lovevamp"
+    },
+    {
+        "id": "10754",
+        "name": "lovewhore"
     },
 
     # 添加更多 Bot：
