@@ -16,8 +16,8 @@ BASE_URL = "https://cloud.puratya.com"
 
 BOTS = [
     {
-        "id": "13930",
-        "name": "loveslut"
+        "id": "14595",
+        "name": "lovevampplus"
     },
     {
         "id": "13931",
