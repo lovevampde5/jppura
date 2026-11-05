@@ -16,14 +16,10 @@ BASE_URL = "https://cloud.m-ws.cc"
 
 BOTS = [
     {
-        "id": "14595",
-        "name": "lovevampplus"
+        "id": "16691",
+        "name": "qwert"
     },
-    {
-        "id": "13931",
-        "name": "loveslutplus"
-    },
-
+    
     # 添加更多 Bot：
     #
     # {
