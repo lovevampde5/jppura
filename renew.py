@@ -7,7 +7,7 @@ import datetime
 # Puratya 配置
 # ==================================
 
-BASE_URL = "https://cloud.puratya.com"
+BASE_URL = "https://cloud.m-ws.cc"
 
 
 # ==================================
